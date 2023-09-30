@@ -4,11 +4,10 @@ num_1: .dword 0x0000000000000010
 .text
 
 main:
-	li,  a0, 1
 	la,  t0, num_1
-	lw,  a1, 0(t0)
-	lw,  a2, 4(t0)
-	jal, ra, shift_or_loop
+	lw,  a0, 0(t0)
+	lw,  a1, 4(t0)
+	jal, ra, count_leading_zeros
 	mv,  a1, a0
 	li,  a0, 1
 	jal, ra, logp2
@@ -17,35 +16,36 @@ main:
 	li   a7, 10 # exit
 	ecall
 
+# arg
+# a0: num_l
+# a1: num_u
+count_leading_zeros:
+	li, s0, 1
+	li, s1, 32
+
 # x |= (x >> 1)
 # x |= (x >> 2)
 # x |= (x >> 4)
 # x |= (x >> 8)
 # x |= (x >> 16)
 # x |= (x >> 32)
-# arg
-# a0: shift_times
-# a1: num_l
-# a2: num_u
-shift_or_loop:
-	srl,  s0, a1, a0 # s0 = a1 << a0
-	li,   t0, 32
-	sub,  t1, t0, a0 # t1 = 32 - a0
-	sll,  t1, a2, t1 # t1 = a2 << (32 - a0)
-	or,   s0, s0, t1 # s0 |= t1
-	srl,  s1, a2, a0 # s1 = a2 << a0
-	slli, a0, a0, 1 # a0 <<= 1
-	or,   a1, a1, s0
-	or,   a2, a2, s1
-	bge   t0, a0, shift_or_loop
-	mv    s0, a1
-	mv,   s1, a2
+_clz_loop:
+	srl,  s2, a0, s0 # s2 = a0 >> s0
+	sub,  t0, s1, s0 # t0 = 32 - s0
+	sll,  t0, a1, t0 # t0 = a1 << (32 - s0)
+	or,   s2, s2, t0 # s2 |= t0
+	srl,  s3, a1, s0 # s3 = a1 >> s0
+	slli, s0, s0, 1 # s0 *= 2
+	or,   a0, a0, s2
+	or,   a1, a1, s3
+	bge   s1, s0, _clz_loop
+	mv    s0, a0
+	mv,   s1, a1
 
-# continued from shift_or_loop
-# arg
+# continued from _clz_loop
 # s0: num_l
 # s1: num_u
-count_leading_zeros:
+_clz:
 	srli, s2, s0, 1 # s2 = s0 >> 1
 	slli, t0, s1, 31 # t0 = s1 << (32 - 1)
 	or,   s2, s2, t0 # s2 |= t0
