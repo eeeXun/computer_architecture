@@ -11,7 +11,7 @@ main:
 	jal, ra, shift_or_loop
 	mv,  a1, a0
 	li,  a0, 1
-	jal, ra, log2p
+	jal, ra, logp2
 	li,  a7, 1 # print
 	ecall
 	li   a7, 10 # exit
@@ -219,18 +219,18 @@ uint64_sub:
 # a1: clz
 # return
 # a0: result
-log2p:
+logp2:
 	mv,  s0, a0
 	mv,  s1, a1
 	mv,  a0, zero
 	li,  t0, 64
 	sub, t0, t0, s1
 
-log2p_loop:
+logp2_loop:
 	sub,  t0, t0, s0
-	bge,  zero, t0, log2p_ret
+	bge,  zero, t0, logp2_ret
 	addi, a0, a0, 1
-	j,    log2p_loop
+	j,    logp2_loop
 
-log2p_ret:
+logp2_ret:
 	jr, ra
