@@ -28,23 +28,15 @@ main:
 # a1: num_l
 # a2: num_u
 shift_or_loop:
-	addi, sp, sp, -16 # push
-	sw,   ra, 0(sp)
-	sw,   a0, 4(sp)
-	sw,   a1, 8(sp)
-	sw,   a2, 12(sp)
-	jal,  ra, shift_right
-	mv,   t0, a0
-	mv,   t1, a1
-	lw,   ra, 0(sp)
-	lw,   s0, 4(sp)
-	lw,   s1, 8(sp)
-	lw,   s2, 12(sp)
-	addi, sp, sp, 16 # pop
-	slli, a0, s0, 1
-	or,   a1, s1, t0
-	or,   a2, s2, t1
+	srl,  s0, a1, a0 # s0 = a1 << a0
 	li,   t0, 32
+	sub,  t1, t0, a0 # t1 = 32 - a0
+	sll,  t1, a2, t1 # t1 = a2 << (32 - a0)
+	or,   s0, s0, t1 # s0 |= t1
+	srl,  s1, a2, a0 # s1 = a2 << a0
+	slli, a0, a0, 1 # a0 <<= 1
+	or,   a1, a1, s0
+	or,   a2, a2, s1
 	bge   t0, a0, shift_or_loop
 	mv    s0, a1
 	mv,   s1, a2
@@ -54,164 +46,73 @@ shift_or_loop:
 # s0: num_l
 # s1: num_u
 count_leading_zeros:
-	addi, sp, sp, -12 # push
-	sw,   ra, 0(sp)
-	sw,   s0, 4(sp)
-	sw,   s1, 8(sp)
-	li,   a0, 1
-	mv,   a1, s0
-	mv,   a2, s1
-	jal,  ra, shift_right
+	srli, s2, s0, 1 # s2 = s0 >> 1
+	slli, t0, s1, 31 # t0 = s1 << (32 - 1)
+	or,   s2, s2, t0 # s2 |= t0
+	srli, s3, s1, 1 # s3 = s1 >> 1
 	li,   t0, 0x55555555
-	and,  t1, a0, t0
-	and,  t2, a1, t0
-	lw,   a0, 4(sp)
-	lw,   a1, 8(sp)
-	mv    a2, t1
-	mv    a3, t2
-	jal   ra, uint64_sub
-	mv,   s0, a0
-	mv,   s1, a1
-	lw,   ra, 0(sp)
-	addi, sp, sp, 12 # pop
+	and,  s2, s2, t0 # s2 = s2 & 0x55555555
+	and,  s3, s3, t0 # s3 = s3 & 0x55555555
+	sub,  t0, s0, s2 # t0 = s0 - s2
+	sltu, t1, s0, t0 # borrow
+	sub,  s1, s1, s3 # s1 = s1 - s3
+	sub,  s1, s1, t1
+	mv    s0, t0
 
-	addi, sp, sp, -12 # push
-	sw,   ra, 0(sp)
-	sw,   s0, 4(sp)
-	sw,   s1, 8(sp)
-	li,   a0, 2
-	mv,   a1, s0
-	mv,   a2, s1
-	jal,  ra, shift_right
+	srli, s2, s0, 2 # s2 = s0 >> 2
+	slli, t0, s1, 30 # t0 = s1 << (32 - 2)
+	or,   s2, s2, t0 # s2 |= t0
+	srli, s3, s1, 2 # s3 = s1 >> 2
 	li,   t0, 0x33333333
-	and,  s0, a0, t0
-	and,  s1, a1, t0
-	lw,   s2, 4(sp)
-	lw,   s3, 8(sp)
-	and,  s2, s2, t0
-	and,  s3, s3, t0
-	mv,   a0, s0
-	mv,   a1, s1
-	mv,   a2, s2
-	mv,   a3, s3
-	jal,  ra, uint64_add
-	lw,   ra, 0(sp)
-	addi, sp, sp, 12 # pop
-
-	addi,   sp, sp, -12 # push
-	sw,     ra, 0(sp)
-	sw,     a0, 4(sp)
-	sw,     a1, 8(sp)
-	li,     a0, 4
-	lw,     a1, 4(sp)
-	lw,     a2, 8(sp)
-	jal,    ra, shift_right
-	lw,     a2, 4(sp)
-	lw,     a3, 8(sp)
-	jal,ra, uint64_add
-	li,     t0, 0x0f0f0f0f
-	and,    a0, a0, t0
-	and,    a1, a1, t0
-	lw,     ra, 0(sp)
-	addi,   sp, sp, 12 # pop
-
-	addi, sp, sp, -12 # push
-	sw,   ra, 0(sp)
-	sw,   a0, 4(sp)
-	sw,   a1, 8(sp)
-	li,   a0, 8
-	lw,   a1, 4(sp)
-	lw,   a2, 8(sp)
-	jal,  ra, shift_right
-	lw,   a2, 4(sp)
-	lw,   a3, 8(sp)
-	jal,  ra, uint64_add
-	lw,   ra, 0(sp)
-	addi, sp, sp, 12 # pop
-
-	addi, sp, sp, -12 # push
-	sw,   ra, 0(sp)
-	sw,   a0, 4(sp)
-	sw,   a1, 8(sp)
-	li,   a0, 16
-	lw,   a1, 4(sp)
-	lw,   a2, 8(sp)
-	jal,  ra, shift_right
-	lw,   a2, 4(sp)
-	lw,   a3, 8(sp)
-	jal,  ra, uint64_add
-	lw,   ra, 0(sp)
-	addi, sp, sp, 12 # pop
-
-	addi, sp, sp, -12 # push
-	sw,   ra, 0(sp)
-	sw,   a0, 4(sp)
-	sw,   a1, 8(sp)
-	li,   a0, 32
-	lw,   a1, 4(sp)
-	lw,   a2, 8(sp)
-	jal,  ra, shift_right
-	lw,   a2, 4(sp)
-	lw,   a3, 8(sp)
-	jal,  ra, uint64_add
-	lw,   ra, 0(sp)
-	addi, sp, sp, 12 # pop
-
-	li,   s0, 64
-	andi, t0, a0, 0x7f
-	sub,  a0, s0, t0
-	jr,   ra
-
-# arg
-# a0 for shift_times
-# a1 for num_l
-# a2 for num_u
-# return
-# a0 for num_l
-# a1 for num_u
-shift_right:
-	srl, s0, a1, a0 # s0 = (num_l >> shift_times)
-	li,  t0, 32
-	sub, t0, t0, a0 # t0 = 32 - shift_times
-	sll, t1, a2, t0 # t1 = (num_u << t0)
-	or,  s0, s0, t1 # s0 = (s0 | t0)
-	srl, s1, a2, a0 # s1 = (num_u >> shift_times)
-	mv,  a0, s0
-	mv,  a1, s1
-	jr,  ra
-
-# arg
-# a0 for num_l of summand
-# a1 for num_u of summand
-# a2 for num_l of addend
-# a3 for num_u of addend
-# return
-# a0 for num_l
-# a1 for num_u
-uint64_add:
-	add,  s0, a0, a2
-	sltu, t0, s0, a0 # carry, from compiler
-	add,  s1, a1, a3
+	and,  s2, s2, t0 # s2 = s2 & 0x33333333
+	and,  s3, s3, t0 # s3 = s3 & 0x33333333
+	and,  s4, s0, t0 # s4 = s0 & 0x33333333
+	and,  s5, s1, t0 # s5 = s1 & 0x33333333
+	add,  s0, s2, s4
+	sltu, t0, s0, s2 # carry
+	add,  s1, s3, s5
 	add,  s1, s1, t0
-	mv,   a0, s0
-	mv,   a1, s1
-	jr,   ra
 
-# arg
-# a0 for num_l of minuend
-# a1 for num_u of minuend
-# a2 for num_l of subtrahend
-# a3 for num_u of subtrahend
-# return
-# a0 for num_l
-# a1 for num_u
-uint64_sub:
-	sub,  s0, a0, a2
-	sltu, t0, a0, s0 # borrow, from compiler
-	sub,  s1, a1, a3
-	sub,  s1, s1, t0
-	mv,   a0, s0
-	mv,   a1, s1
+	srli, s2, s0, 4 # s2 = s0 >> 4
+	slli, t0, s1, 28 # t0 = s1 << (32 - 4)
+	or,   s2, s2, t0 # s2 |= t0
+	srli, s3, s1, 4 # s3 = s1 >> 4
+	add,  s4, s0, s2 # s4 = s0 + s2
+	sltu, t0, s4, s0 # carry
+	add,  s5, s1, s3 # s5 = s1 + s3
+	add,  s5, s5, t0
+	li,   t0, 0x0f0f0f0f
+	and,  s0, s4, t0
+	and,  s1, s5, t0
+
+	srli, s2, s0, 8 # s2 = s0 >> 8
+	slli, t0, s1, 24 # t0 = s1 << (32 - 8)
+	or,   s2, s2, t0 # s2 |= t0
+	srli, s3, s1, 8 # s3 = s1 >> 8
+	add,  s0, s0, s2
+	sltu, t0, s0, s2 # carry
+	add,  s1, s1, s3
+	add,  s1, s1, t0
+
+	srli, s2, s0, 16 # s2 = s0 >> 16
+	slli, t0, s1, 16 # t0 = s1 << (32 - 16)
+	or,   s2, s2, t0 # s2 |= t0
+	srli, s3, s1, 16 # s3 = s1 >> 16
+	add,  s0, s0, s2
+	sltu, t0, s0, s2 # carry
+	add,  s1, s1, s3
+	add,  s1, s1, t0
+
+	mv,   s2, s1 # >> 32 => s2 = s1
+	li,   s3, 0 # s3 = 0
+	add,  s0, s0, s2
+	sltu, t0, s0, s2 # carry
+	add,  s1, s1, s3
+	add,  s1, s1, t0
+
+	li,   t0, 64
+	andi, t1, s0, 0x7f
+	sub,  a0, t0, t1
 	jr,   ra
 
 # arg
