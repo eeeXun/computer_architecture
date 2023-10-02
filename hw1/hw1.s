@@ -1,19 +1,57 @@
 .data
+case_num: .word 3
 num_1: .dword 0x0000000000000010
+num_2: .dword 0x0000000000000040
+num_3: .dword 0x0a00492800010298
+_EOL: .string "\n"
 
 .text
 
 main:
-	la,  t0, num_1
-	lw,  a0, 0(t0)
-	lw,  a1, 4(t0)
+	la,   s0, case_num
+	la,   s1, num_1
+	la,   s2, _EOL
+	lw,   s0, 0(s0)
+	addi, sp, sp, -20 # push
+	sw,   s0, 0(sp)
+	sw,   s1, 4(sp)
+	sw,   s2, 8(sp)
+
+case_loop:
+	lw,  a0, 0(s1)
+	lw,  a1, 4(s1)
 	jal, ra, count_leading_zeros
 	mv,  a1, a0
 	li,  a0, 1
-	jal, ra, logp2
-	li,  a7, 1 # print
+	sw,  a0, 12(sp)
+	sw,  a1, 16(sp)
+
+# base from 2 to 16
+base_loop:
+	jal,  ra, logp2
+	li,   a7, 1 # print result
 	ecall
-	li   a7, 10 # exit
+	lw,   a0, 8(sp)
+	li,   a7, 4 # print EOL
+	ecall
+	lw,   a0, 12(sp)
+	lw,   a1, 16(sp)
+	addi, a0, a0, 1
+	li,   t0, 4
+	sw,   a0, 12(sp)
+	bge,  t0, a0, base_loop
+	lw,   s0, 0(sp)
+	lw,   s1, 4(sp)
+	addi, s0, s0, -1
+	beq,  zero, s0, exit
+	addi, s1, s1, 8
+	sw,   s0, 0(sp)
+	sw,   s1, 4(sp)
+	j,    case_loop
+
+exit:
+	addi, sp, sp, 20 # pop
+	li,   a7, 10 # exit
 	ecall
 
 # arg
