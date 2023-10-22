@@ -168,22 +168,74 @@ Multi_bfloat:
     or t3,t3,t6           # use mask 0x80000000 to add integer
     srli t3,t3,1          # shift right to add space for overflow
 
-    add s11,x0,x0         # set a counter and 0
-    addi s10,x0,8         # set a end condition
     add t1,x0,x0          # reset t1 to 0 and let this register be result
     li t6,0x80000000
 
-loop:
-    addi s11,s11,1        # add 1 at counter every loop
+# unroll multiplication 8 times
     srli t6,t6,1          # shift right at 1 every loop
-    
     and t4,t2,t6          # use mask to specified number at that place
-    beq t4,x0,not_add     # jump if t4 equal to 0
-    add t1,t1,t3          # add t3 to t1
-not_add:
+    sltu s0,zero,t4       # s0 = 1 if t4 > 0, otherwise 0
+    sub s0,zero,s0        # s0 = 0xFFFFFFFF if s0 = 1, otherwise 0
+    and s1,s0,t3
+    add t1,t1,s1          # add t3 to s1
     srli t3,t3,1          # shift left 1 bit to t3
-    bne s11,s10,loop      # if the condition not satisfy return to loop
-# end of loop 
+
+    srli t6,t6,1          # shift right at 1 every loop
+    and t4,t2,t6          # use mask to specified number at that place
+    sltu s0,zero,t4       # s0 = 1 if t4 > 0, otherwise 0
+    sub s0,zero,s0        # s0 = 0xFFFFFFFF if s0 = 1, otherwise 0
+    and s1,s0,t3
+    add t1,t1,s1          # add t3 to s1
+    srli t3,t3,1          # shift left 1 bit to t3
+
+    srli t6,t6,1          # shift right at 1 every loop
+    and t4,t2,t6          # use mask to specified number at that place
+    sltu s0,zero,t4       # s0 = 1 if t4 > 0, otherwise 0
+    sub s0,zero,s0        # s0 = 0xFFFFFFFF if s0 = 1, otherwise 0
+    and s1,s0,t3
+    add t1,t1,s1          # add t3 to s1
+    srli t3,t3,1          # shift left 1 bit to t3
+
+    srli t6,t6,1          # shift right at 1 every loop
+    and t4,t2,t6          # use mask to specified number at that place
+    sltu s0,zero,t4       # s0 = 1 if t4 > 0, otherwise 0
+    sub s0,zero,s0        # s0 = 0xFFFFFFFF if s0 = 1, otherwise 0
+    and s1,s0,t3
+    add t1,t1,s1          # add t3 to s1
+    srli t3,t3,1          # shift left 1 bit to t3
+
+    srli t6,t6,1          # shift right at 1 every loop
+    and t4,t2,t6          # use mask to specified number at that place
+    sltu s0,zero,t4       # s0 = 1 if t4 > 0, otherwise 0
+    sub s0,zero,s0        # s0 = 0xFFFFFFFF if s0 = 1, otherwise 0
+    and s1,s0,t3
+    add t1,t1,s1          # add t3 to s1
+    srli t3,t3,1          # shift left 1 bit to t3
+
+    srli t6,t6,1          # shift right at 1 every loop
+    and t4,t2,t6          # use mask to specified number at that place
+    sltu s0,zero,t4       # s0 = 1 if t4 > 0, otherwise 0
+    sub s0,zero,s0        # s0 = 0xFFFFFFFF if s0 = 1, otherwise 0
+    and s1,s0,t3
+    add t1,t1,s1          # add t3 to s1
+    srli t3,t3,1          # shift left 1 bit to t3
+
+    srli t6,t6,1          # shift right at 1 every loop
+    and t4,t2,t6          # use mask to specified number at that place
+    sltu s0,zero,t4       # s0 = 1 if t4 > 0, otherwise 0
+    sub s0,zero,s0        # s0 = 0xFFFFFFFF if s0 = 1, otherwise 0
+    and s1,s0,t3
+    add t1,t1,s1          # add t3 to s1
+    srli t3,t3,1          # shift left 1 bit to t3
+
+    srli t6,t6,1          # shift right at 1 every loop
+    and t4,t2,t6          # use mask to specified number at that place
+    sltu s0,zero,t4       # s0 = 1 if t4 > 0, otherwise 0
+    sub s0,zero,s0        # s0 = 0xFFFFFFFF if s0 = 1, otherwise 0
+    and s1,s0,t3
+    add t1,t1,s1          # add t3 to s1
+    srli t3,t3,1          # shift left 1 bit to t3
+# end of unroll 
   
     # check if overflow
     li t6,0x80000000
