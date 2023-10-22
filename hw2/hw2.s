@@ -123,9 +123,7 @@ decoder:
     add t0,s9,x0          # load s9(data encode) to t0
     li s2,0xFFFF0000
     and t1,t0,s2          # use mask to specification bfloat 1
-    li s2,0x0000FFFF
-    and t2,t0,s2          # use mask to specification bfloat 2
-    slli t2,t2,16         # shift to left to let bfloat peform like original float
+    slli t2, t0, 16
     add s6,t1,x0          # store t1(bfloat 1) to s6
     add s5,t2,x0          # store t2(bfloat 2) to s5
     ret                   # return to main
@@ -158,12 +156,10 @@ Multi_bfloat:
     or t0,t3,t0
 
     # get fraction to t2 and t3
-    li t6,0x7f
-    slli t6,t6,16         # shift mask to 0x7F0000
+    li t6,0x7F0000        # shift mask to 0x7F0000
     and t2,t0,t6          # use mask 0x7F0000 get fraction
     and t3,t1,t6          # use mask 0x7F0000 get fraction
-    slli t2,t2,9          # shift left let no leading 0
-    srli t2,t2,1          # shift right let leading has one 0
+    slli, t2,t2,8
     li t6,0x80000000
     or t2,t2,t6           # use mask 0x80000000 to add integer
     srli t2,t2,1          # shift right to add space for overflow
