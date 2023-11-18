@@ -1,4 +1,7 @@
+#include <stdint.h>
 #include <stdio.h>
+
+extern uint64_t get_cycles();
 
 float fp32_to_bf16(float x)
 {
@@ -41,6 +44,7 @@ void decoder(int c, void* n1, void* n2)
 
 int main()
 {
+    uint64_t oldcount = get_cycles();
     // definition of num1 and transfer it to bfloat
     float num1 = -12.123;
     int* np1 = (int*)&num1;
@@ -65,5 +69,7 @@ int main()
     float mul_num;
     mul_num = num1 * num2;
     printf("%f\n", mul_num);
+    uint64_t cyclecount = get_cycles() - oldcount;
+    printf("cyle count: %u\n", (unsigned int)cyclecount);
     return 0;
 }
